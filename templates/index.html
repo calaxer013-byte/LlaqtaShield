@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>LlaqtaShield — Plataforma Inteligente de Alertas Comunitarias</title>
+
+  <meta name="description"
+        content="LlaqtaShield — Sistema profesional de reportes, alertas y monitoreo ciudadano en Huánuco. Tecnología STEAM con enfoque social.">
+
+  <link rel="icon" type="image/svg+xml" href="/static/img/llaqta_ultra.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+
+  <!-- =====================================================
+       ESTILOS ULTRA PRO — EFECTO PREMIUM 2025
+       ===================================================== -->
+  <style>
+    :root {
+      --verde1:#062e1f;
+      --verde2:#21d87f;
+      --verde3:#0fa25c;
+      --crema:#FFF7E0;
+      --bg-dark:#08110d;
+
+      --glass:rgba(255,255,255,0.08);
+      --glass-strong:rgba(255,255,255,0.12);
+      --border-light:rgba(255,255,255,0.18);
+
+      --card-bg:rgba(255,255,255,0.10);
+
+      --shadow-sm:0 2px 8px rgba(0,0,0,0.35);
+      --shadow-md:0 6px 25px rgba(0,0,0,0.45);
+      --shadow-lg:0 12px 55px rgba(0,0,0,0.70);
+
+      --gradient:linear-gradient(135deg,var(--verde1),var(--verde2));
+    }
+
+    body{
+      margin:0;
+      background:var(--bg-dark);
+      font-family:"Inter",sans-serif;
+      color:white;
+      overflow-x:hidden;
+    }
+
+    /* FONDO DINÁMICO ULTRA PRO */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(33,216,127,0.22), transparent 60%),
+        radial-gradient(circle at 75% 70%, rgba(10,150,80,0.22), transparent 60%),
+        url("data:image/svg+xml,%3Csvg width='180' height='180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%2321d87f' stroke-opacity='0.15' stroke-width='1'%3E%3Cpath d='M90 10 L160 50 L160 130 L90 170 L20 130 L20 50 Z'/%3E%3C/g%3E%3C/svg%3E"),
+        linear-gradient(160deg, #07140F, #0C241C, #05100C);
+      background-size:auto, auto, 250px, cover;
+      animation:scan 20s linear infinite;
+      z-index:-2;
+      opacity:0.85;
+    }
+
+    @keyframes scan {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 0 0, 0 0, 0 520px, 0 0; }
+    }
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:radial-gradient(circle at center, rgba(33,216,127,0.14), transparent 70%);
+      mix-blend-mode:soft-light;
+      animation:pulse 6s ease-in-out infinite;
+      z-index:-2;
+    }
+
+    @keyframes pulse{
+      0%{opacity:0.22;}
+      50%{opacity:0.65;}
+      100%{opacity:0.22;}
+    }
+
+    /* SECCIÓN PRINCIPAL */
+    .hero{
+      text-align:center;
+      padding:150px 20px 140px;
+      background:rgba(0,0,0,0.32);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      box-shadow:0 10px 60px rgba(0,0,0,0.65);
+    }
+
+    .hero h1{
+      font-size:clamp(2.4rem,4vw,4rem);
+      font-weight:800;
+      color:#e6ffef;
+      letter-spacing:-0.5px;
+      text-shadow:0 0 20px rgba(33,216,127,0.45);
+      animation:fadeDown 1.2s ease;
+    }
+
+    @keyframes fadeDown {
+      from { opacity:0; transform:translateY(-15px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero p{
+      max-width:780px;
+      margin:25px auto;
+      font-size:1.25rem;
+      color:#c9f3db;
+      opacity:0.92;
+      animation:fadeUp 1.4s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(15px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero-btn{
+      display:inline-block;
+      padding:18px 38px;
+      border-radius:18px;
+      background:var(--gradient);
+      color:white;
+      font-weight:800;
+      text-decoration:none;
+      font-size:1.2rem;
+      box-shadow:var(--shadow-md);
+      transition:0.25s ease;
+      animation:fadeUp 1.6s ease;
+    }
+
+    .hero-btn:hover{
+      transform:translateY(-4px) scale(1.03);
+      filter:brightness(1.18);
+    }
+
+    /* TARJETAS */
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:35px;
+      padding:70px 40px;
+      max-width:1300px;
+      margin:auto;
+    }
+
+    .card{
+      background:var(--glass);
+      padding:36px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow:var(--shadow-md);
+      backdrop-filter:blur(10px);
+      transition:.35s;
+      animation:fadeCards 1s ease;
+    }
+
+    @keyframes fadeCards{
+      from{opacity:0; transform:translateY(20px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+
+    .card:hover{
+      transform:translateY(-10px) scale(1.02);
+      border-color:rgba(33,216,127,0.7);
+      box-shadow:var(--shadow-lg);
+    }
+
+    .card h3{
+      margin:0 0 12px;
+      font-size:1.65rem;
+      color:#baffd9;
+      text-shadow:0 0 6px rgba(33,216,127,0.4);
+    }
+
+    .btn{
+      display:inline-block;
+      margin-top:12px;
+      padding:14px 22px;
+      background:var(--gradient);
+      border-radius:14px;
+      text-decoration:none;
+      color:white;
+      font-weight:700;
+      transition:0.25s;
+    }
+
+    .btn:hover{
+      transform:translateY(-3px);
+      filter:brightness(1.15);
+    }
+
+    /* SECCIONES PROFESIONALES */
+    .section{
+      max-width:1200px;
+      margin:90px auto;
+      padding:20px;
+      color:white;
+    }
+
+    .section h2{
+      font-size:2.5rem;
+      margin-bottom:32px;
+      text-align:center;
+      font-weight:800;
+      color:#dffff0;
+      text-shadow:0 0 18px rgba(33,216,127,0.4);
+    }
+
+    .feature-list{
+      display:grid;
+      gap:26px;
+      grid-template-columns:1fr 1fr;
+    }
+
+    @media(max-width:800px){
+      .feature-list{ grid-template-columns:1fr; }
+    }
+
+    .feature{
+      background:var(--glass-strong);
+      border-radius:20px;
+      padding:24px 28px;
+      box-shadow:var(--shadow-sm);
+      border-left:6px solid var(--verde2);
+      color:#e4fff3;
+      font-size:1.05rem;
+      backdrop-filter:blur(6px);
+      transition:0.3s;
+    }
+
+    .feature:hover{
+      transform:scale(1.015);
+      box-shadow:var(--shadow-md);
+    }
+
+    /* ESTADÍSTICAS */
+    .stats{
+      display:flex;
+      justify-content:center;
+      gap:55px;
+      margin:55px 0;
+      flex-wrap:wrap;
+      text-align:center;
+    }
+
+    .stat{
+      background:var(--glass);
+      padding:32px 42px;
+      border-radius:20px;
+      box-shadow:var(--shadow-sm);
+      min-width:220px;
+      border:1px solid rgba(255,255,255,0.12);
+      transition:.3s;
+    }
+
+    .stat:hover{
+      transform:translateY(-8px);
+      box-shadow:var(--shadow-md);
+    }
+
+    footer{
+      text-align:center;
+      padding:45px 20px;
+      margin-top:90px;
+      background:var(--glass-strong);
+      border-top:1px solid rgba(255,255,255,0.12);
+      color:#c8eedd;
+      backdrop-filter:blur(8px);
+      font-size:0.95rem;
+    }
+  </style>
+</head>
+
+<body>
+
+<section class="hero">
+  <h1>La Plataforma de Alertas Más Avanzada de Huánuco</h1>
+  <p>
+    LlaqtaShield integra tecnología STEAM, geolocalización inteligente y análisis comunitario 
+    para fortalecer la seguridad, convivencia y bienestar social.
+  </p>
+  <a href="/reportar" class="hero-btn">Hacer un Reporte</a>
+</section>
+
+<section class="cards">
+  <div class="card">
+    <h3>🛡 Reportar</h3>
+    <p>Registra incidentes, emergencias, bullying o riesgos ciudadanos.</p>
+    <a href="/reportar" class="btn">Enviar alerta</a>
+  </div>
+
+  <div class="card">
+    <h3>📍 Mapa en Vivo</h3>
+    <p>Visualización georreferenciada en tiempo real, accesible desde móvil y web.</p>
+    <a href="/mapa" class="btn">Ver mapa</a>
+  </div>
+
+  <div class="card">
+    <h3>🔐 Panel Administrativo</h3>
+    <p>Acceso reservado para autoridades y responsables del sistema.</p>
+    <a href="/admin/reports" class="btn">Entrar al panel</a>
+  </div>
+</section>
+
+<section class="section">
+  <h2>¿Cómo Funciona LlaqtaShield?</h2>
+  <div class="feature-list">
+    <div class="feature">🚨 <strong>1. El ciudadano reporta un incidente</strong><br>Sin instalar apps, solo el navegador.</div>
+    <div class="feature">🌍 <strong>2. Ubicación automática</strong><br>Latitud y longitud exactas del incidente.</div>
+    <div class="feature">📸 <strong>3. Evidencia fotográfica</strong><br>Acelera la validación del reporte.</div>
+    <div class="feature">📑 <strong>4. PDF profesional</strong><br>Documento oficial con todos los datos.</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Beneficios para la Comunidad</h2>
+  <div class="feature-list">
+    <div class="feature">✔ Reduce el tiempo de respuesta.</div>
+    <div class="feature">✔ Impulsa la participación ciudadana.</div>
+    <div class="feature">✔ Refuerza la convivencia escolar.</div>
+    <div class="feature">✔ Provee datos reales para decisiones.</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Integración con Tecnología STEAM</h2>
+  <div class="feature-list">
+    <div class="feature">🔧 Programación web (HTML, CSS, JS, Python/Flask)</div>
+    <div class="feature">🛰 Sistemas de geolocalización GPS</div>
+    <div class="feature">🤖 IA y análisis de datos</div>
+    <div class="feature">🧪 Aprendizaje basado en proyectos reales</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Casos de Uso Reales</h2>
+  <div class="feature-list">
+    <div class="feature">• Bullying, violencia escolar, emergencias médicas</div>
+    <div class="feature">• Robos, peleas, disturbios, riesgos comunales</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Visión a Futuro</h2>
+  <p style="text-align:center; max-width:900px; margin:auto; color:#ccefe0;">
+    LlaqtaShield se proyecta como una herramienta regional de monitoreo inteligente,
+    integrando analítica predictiva, clasificación automática con IA y
+    notificaciones instantáneas para autoridades locales.
+  </p>
+</section>
+
+<section class="section">
+  <h2>Impacto del Proyecto</h2>
+
+  <div class="stats">
+    <div class="stat">
+      <h3>+120</h3>
+      <p>Estudiantes capacitados</p>
+    </div>
+
+    <div class="stat">
+      <h3>24/7</h3>
+      <p>Monitoreo continuo</p>
+    </div>
+
+    <div class="stat">
+      <h3>100%</h3>
+      <p>Compatible con celulares</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2025 — Proyecto Llaqta Qhawaqkuna — Huánuco<br>
+  Innovación Social con Tecnología STEAM
+</footer>
+
+</body>
+</html>
