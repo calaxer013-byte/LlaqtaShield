@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+  <title>Mapa de Alertas — LlaqtaShield</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- CSS global -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+
+  <style>
+    :root {
+      --verde1:#0C5F3A;
+      --verde2:#1B8F57;
+      --shadow-glass:0 8px 32px rgba(0,0,0,0.18);
+      --glass-bg:rgba(255,255,255,0.75);
+      --glass-border:rgba(255,255,255,0.45);
+    }
+
+    body{
+      margin:0;
+      font-family:"Inter",sans-serif;
+      background:#f3f5f2;
+      color:var(--verde1);
+    }
+
+    /* HEADER ULTRA PRO */
+    .small-header{
+      position:sticky;
+      top:0;
+      background:var(--glass-bg);
+      backdrop-filter:blur(14px);
+      padding:20px 26px;
+      border-bottom:1px solid var(--glass-border);
+      box-shadow:0 8px 22px rgba(0,0,0,0.12);
+      display:flex;
+      align-items:center;
+      gap:18px;
+      z-index:20;
+      border-radius:0 0 14px 14px;
+    }
+
+    .small-header .link{
+      background:linear-gradient(135deg,var(--verde1),var(--verde2));
+      padding:10px 16px;
+      color:white;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:700;
+      transition:0.25s;
+      box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .small-header .link:hover{
+      filter:brightness(1.12);
+      transform:translateY(-2px);
+    }
+
+    h1{
+      margin:0;
+      font-size:1.6rem;
+      font-weight:800;
+      color:var(--verde1);
+      text-shadow:0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* CONTENEDOR */
+    .container{
+      max-width:1200px;
+      margin:30px auto;
+      padding:0 20px;
+    }
+
+    /* CARD GLASS ULTRA */
+    .card{
+      background:var(--glass-bg);
+      backdrop-filter:blur(16px);
+      border:1px solid var(--glass-border);
+      border-radius:20px;
+      box-shadow:var(--shadow-glass);
+      padding:20px;
+    }
+
+    /* MAPA ULTRA */
+    #map{
+      height:72vh;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(12,95,58,0.25);
+      box-shadow:0 6px 32px rgba(0,0,0,0.18);
+      position:relative;
+      animation:fadeIn 0.8s ease;
+    }
+
+    /* Animación del mapa */
+    @keyframes fadeIn{
+      from{opacity:0; transform:scale(0.96);}
+      to{opacity:1; transform:scale(1);}
+    }
+
+    /* TEXTO 'Cargando...' */
+    #map::before{
+      content:"Cargando mapa...";
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.2rem;
+      font-weight:700;
+      color:#3a4a42;
+      opacity:0.6;
+      animation:pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%{opacity:0.6;}
+      50%{opacity:1;}
+      100%{opacity:0.6;}
+    }
+
+    @media(max-width:768px){
+      #map{height:60vh;}
+      .small-header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="small-header">
+  <a href="/" class="link">&larr; Volver al inicio</a>
+  <h1>Mapa de Alertas</h1>
+</header>
+
+<main class="container">
+  <div class="card">
+    <div id="map"></div>
+  </div>
+</main>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/mapa.js"></script>
+
+</body>
+</html>
