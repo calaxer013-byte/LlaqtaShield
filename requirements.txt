@@ -1,6 +1,4 @@
-Flask
+flask
 flask-cors
 python-dotenv
-pysqlite3-binary
 gunicorn
-simplejson
