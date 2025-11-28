@@ -3,28 +3,8 @@
 
 """
 ===========================================================
-LLAQTASHIELD — Backend Oficial
-===========================================================
-
-Sistema inteligente de alertas y reportes ciudadanos para:
-✔ Comunidad Huanuqueña
-✔ G.U.E. LEONCIO PRADO
-✔ Estudiantes, docentes y padres de familia
-
-Funciones principales:
-• Recolección de reportes con ubicación e imagen
-• Generación de archivo HTML del caso
-• API pública de alertas simuladas
-• Dashboard administrativo seguro
-• Persistencia en SQLite
-• Subida segura de imágenes
-
-El código original permanece intacto.
-Solo se mejoró:
-→ estilo
-→ documentación
-→ orden
-→ claridad
+ LLAQTASHIELD — Sistema Inteligente de Alertas Comunitarias
+ Backend Flask con SQLite + Seguridad + Rate Limit + Upload
 ===========================================================
 """
 
@@ -34,8 +14,8 @@ Solo se mejoró:
 import os
 import re
 import time
-import io
 import csv
+import io
 import random
 import logging
 import sqlite3
@@ -52,7 +32,7 @@ from werkzeug.utils import secure_filename
 
 
 # ===========================================================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN GLOBAL
 # ===========================================================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -77,17 +57,12 @@ ADMIN_PASS = os.environ.get("LLAQTA_ADMIN_PASS", "changeme")
 MAX_CONTENT_LENGTH = 6 * 1024 * 1024
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif"}
 
-RATE_LIMIT_WINDOW = 60  # segundos
-RATE_LIMIT_MAX = 60     # peticiones por IP
+RATE_LIMIT_WINDOW = 60
+RATE_LIMIT_MAX = 60
 
 CATEGORIES = [
-    "EMERGENCIA",
-    "BULLYING",
-    "SALUD",
-    "INFRAESTRUCTURA",
-    "CLIMA",
-    "APOYO_ADULTO_MAYOR",
-    "OTRO"
+    "EMERGENCIA", "BULLYING", "SALUD", "INFRAESTRUCTURA", "CLIMA",
+    "APOYO ADULTO MAYOR", "MALTRATO ANIMAL", "ROBO A MANO ARMADA", "OTRO"
 ]
 
 
@@ -108,6 +83,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("llaqta")
 
+# Memoria para rate limits
 _rate_store: Dict[str, deque] = {}
 
 
@@ -115,66 +91,67 @@ _rate_store: Dict[str, deque] = {}
 # UTILIDADES DEL SISTEMA
 # ===========================================================
 def get_db_conn() -> sqlite3.Connection:
-    """Retorna una conexión a la base de datos (por request)."""
-    db = getattr(g, "_database", None)
-    if db is None:
-        db = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
-        db.row_factory = sqlite3.Row
-        g._database = db
-    return db
+    """Retorna una conexión SQLite por request."""
+    if "_database" not in g:
+        conn = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
+        conn.row_factory = sqlite3.Row
+        g._database = conn
+    return g._database
 
 
 @app.teardown_appcontext
-def close_db_conn(exc):
-    """Cierra la conexión al terminar el request."""
-    db = getattr(g, "_database", None)
-    if db:
-        db.close()
+def close_db_conn(_):
+    conn = g.pop("_database", None)
+    if conn:
+        conn.close()
 
 
 def init_db():
-    """Inicializa la base de datos si no existe."""
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            created_at TEXT NOT NULL,
-            categoria TEXT NOT NULL,
-            descripcion TEXT NOT NULL,
-            direccion TEXT,
-            lat REAL,
-            lng REAL,
-            telefono TEXT,
-            anonimo INTEGER DEFAULT 0,
-            imagen_path TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
-    logger.info("📚 Base de datos inicializada correctamente.")
+    """Crea tabla de reportes si no existe."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                descripcion TEXT NOT NULL,
+                direccion TEXT,
+                lat REAL,
+                lng REAL,
+                telefono TEXT,
+                anonimo INTEGER DEFAULT 0,
+                imagen_path TEXT
+            )
+        """)
+        conn.commit()
+        logger.info("📚 Base de datos inicializada correctamente.")
+    except Exception as e:
+        logger.error("❌ Error inicializando la BD: %s", e)
+    finally:
+        conn.close()
 
 
 def sanitize_text(s, max_len=2048):
-    """Limpia texto para evitar abuso de longitud o spam."""
+    """Remueve spam, exceso de espacios y limita longitud."""
     if not s:
         return ""
     return re.sub(r"\s+", " ", s).strip()[:max_len]
 
 
 def allowed_file(filename):
-    """Extensiones permitidas para imágenes."""
+    """Verifica extensión de imagen segura."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
 
 
 def ip_for_request():
-    """Obtiene IP real incluso si pasa por proxy."""
-    xff = request.headers.get("X-Forwarded-For")
-    return xff.split(",")[0] if xff else request.remote_addr or "unknown"
+    """Obtiene IP real incluso con proxy."""
+    forwarded = request.headers.get("X-Forwarded-For")
+    return forwarded.split(",")[0] if forwarded else request.remote_addr or "0.0.0.0"
 
 
 def rate_limited():
-    """Controla si la IP ya excedió los límites permitidos."""
+    """Anti-spam por IP."""
     ip = ip_for_request()
     now = time.time()
 
@@ -190,7 +167,7 @@ def rate_limited():
 
 
 def require_admin(f):
-    """Decorador de autenticación básica para el dashboard admin."""
+    """Protección básica para panel admin."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         auth = request.authorization
@@ -205,14 +182,15 @@ def require_admin(f):
 
 
 # ===========================================================
-# GENERACIÓN DE ARCHIVO HTML DEL REPORTE
+# GENERACIÓN DE ARCHIVO HTML DE REPORTE
 # ===========================================================
 def generar_documento_reporte(data):
+    """Genera archivo HTML profesional y seguro."""
     fecha = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"reporte_{fecha}.html"
-    ruta_salida = os.path.join(REPORTS_FOLDER, filename)
+    ruta = os.path.join(REPORTS_FOLDER, filename)
 
-    contenido = f"""<!doctype html>
+    html = f"""<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -227,23 +205,15 @@ h1{{color:#0b6b55;border-bottom:4px solid #dfe9e3;padding-bottom:8px}}
 <body>
 <h1>Reporte generado — Sistema LlaqtaShield</h1>
 <div class="box">
-<p><span class="lab">Fecha:</span> {data.get("created_at")}</p>
-<p><span class="lab">Categoría:</span> {data.get("categoria")}</p>
-<p><span class="lab">Descripción:</span> {data.get("descripcion")}</p>
-<p><span class="lab">Dirección:</span> {data.get("direccion")}</p>
-<p><span class="lab">Latitud:</span> {data.get("lat")}</p>
-<p><span class="lab">Longitud:</span> {data.get("lng")}</p>
-<p><span class="lab">Teléfono:</span> {data.get("telefono")}</p>
-<p><span class="lab">Anónimo:</span> {data.get("anonimo")}</p>
-<p><span class="lab">Imagen:</span> {data.get("imagen_path")}</p>
+{"".join(f"<p><span class='lab'>{k}:</span> {v}</p>" for k, v in data.items())}
 </div>
 </body>
 </html>"""
 
-    with open(ruta_salida, "w", encoding="utf-8") as f:
-        f.write(contenido)
+    with open(ruta, "w", encoding="utf-8") as f:
+        f.write(html)
 
-    return ruta_salida
+    return ruta
 
 
 # ===========================================================
@@ -269,20 +239,19 @@ def mapa():
 # ===========================================================
 @app.route("/api/alertas")
 def api_alertas():
-
     def rnd(base, delta=0.01):
-        return base + (random.random() * (delta * 2) - delta)
+        return base + (random.random() * delta * 2 - delta)
 
     return jsonify([
         {
             "categoria": "EMERGENCIA",
-            "descripcion": "Robo en proceso",
+            "descripcion": "Robo",
             "direccion": "Zona comercial",
             "lat": rnd(-9.93),
             "lng": rnd(-76.24)
         },
         {
-            "categoria": "APOYO_ADULTO_MAYOR",
+            "categoria": "APOYO ADULTO MAYOR",
             "descripcion": "Ayuda requerida",
             "direccion": "Av. Principal",
             "lat": rnd(-9.935),
@@ -291,7 +260,7 @@ def api_alertas():
         {
             "categoria": "OTRO",
             "descripcion": "Reporte menor",
-            "direccion": "Parque vecinal",
+            "direccion": "",
             "lat": rnd(-9.94),
             "lng": rnd(-76.25)
         }
@@ -299,54 +268,54 @@ def api_alertas():
 
 
 # ===========================================================
-# API DE REPORTES (FORMULARIO)
+# API — REGISTRO DE REPORTES
 # ===========================================================
 @app.route("/report", methods=["POST"])
 def report():
     if rate_limited():
-        return jsonify({"error": "Rate limit exceeded"}), 429
+        return jsonify({"error": "Too many requests"}), 429
 
     form = request.form
     files = request.files
 
+    # Datos saneados
     categoria = sanitize_text(form.get("categoria", "OTRO"))
-    descripcion = sanitize_text(form.get("descripcion", ""))
-    direccion = sanitize_text(form.get("direccion", ""))
-    telefono = sanitize_text(form.get("telefono", ""))
-
-    anonimo = 1 if form.get("anonimo", "").lower() == "on" else 0
+    descripcion = sanitize_text(form.get("descripcion"))
+    direccion = sanitize_text(form.get("direccion"))
+    telefono = sanitize_text(form.get("telefono"))
+    anonimo = int(form.get("anonimo") == "on")
 
     if not descripcion:
-        return jsonify({"error": "La descripción es obligatoria."}), 400
+        return jsonify({"error": "Descripción obligatoria"}), 400
 
-    # Intentar leer coordenadas
+    # Coordenadas seguras
     try:
         lat = float(form.get("lat")) if form.get("lat") else None
         lng = float(form.get("lng")) if form.get("lng") else None
-    except:
+    except ValueError:
         lat = lng = None
 
-    # Imagen
+    # Manejo de imagen
     imagen_rel = None
     img = files.get("imagen")
 
     if img and img.filename:
         if not allowed_file(img.filename):
-            return jsonify({"error": "Tipo de archivo no permitido"}), 400
+            return jsonify({"error": "Archivo no permitido"}), 400
 
         filename = f"{int(time.time()*1000)}_{secure_filename(img.filename)}"
-        dest = os.path.join(UPLOAD_FOLDER, filename)
+        full = os.path.join(UPLOAD_FOLDER, filename)
 
         try:
-            img.save(dest)
+            img.save(full)
             imagen_rel = "/static/evidencias/" + filename
         except:
             logger.exception("Error guardando imagen")
             return jsonify({"error": "Error guardando imagen"}), 500
 
-    # Guardar en BD
     created_at = datetime.utcnow().isoformat()
 
+    # Guardado BD
     try:
         conn = get_db_conn()
         cur = conn.cursor()
@@ -354,29 +323,29 @@ def report():
             INSERT INTO reports (
                 created_at, categoria, descripcion, direccion,
                 lat, lng, telefono, anonimo, imagen_path
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             created_at, categoria, descripcion, direccion,
             lat, lng, telefono, anonimo, imagen_rel
         ))
         conn.commit()
+
         new_id = cur.lastrowid
-    except:
-        logger.exception("Error en la BD")
+    except Exception as e:
+        logger.exception("DB error")
         return jsonify({"error": "DB error"}), 500
 
-    # Generar documento HTML del caso
+    # Generar documento HTML
     doc_path = generar_documento_reporte({
-        "created_at": created_at,
-        "categoria": categoria,
-        "descripcion": descripcion,
-        "direccion": direccion,
-        "lat": lat,
-        "lng": lng,
-        "telefono": telefono,
-        "anonimo": anonimo,
-        "imagen_path": imagen_rel
+        "Fecha": created_at,
+        "Categoría": categoria,
+        "Descripción": descripcion,
+        "Dirección": direccion,
+        "Latitud": lat,
+        "Longitud": lng,
+        "Teléfono": telefono,
+        "Anónimo": anonimo,
+        "Imagen": imagen_rel
     })
 
     return jsonify({
@@ -387,42 +356,43 @@ def report():
 
 
 # ===========================================================
-# API: EXPORTAR REPORTES
+# EXPORTAR REPORTES
 # ===========================================================
 @app.route("/api/reports")
 def api_reports():
     if rate_limited():
-        return jsonify({"error": "Rate limit exceeded"}), 429
+        return jsonify({"error": "Too many requests"}), 429
 
     limit = int(request.args.get("limit", 200))
     offset = int(request.args.get("offset", 0))
 
     cur = get_db_conn().cursor()
-    cur.execute(
-        "SELECT * FROM reports ORDER BY created_at DESC LIMIT ? OFFSET ?",
-        (limit, offset)
-    )
+    cur.execute("""
+        SELECT * FROM reports
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+    """, (limit, offset))
 
     rows = cur.fetchall()
     return jsonify([{k: r[k] for k in r.keys()} for r in rows])
 
 
 # ===========================================================
-# RUTA: MOSTRAR ARCHIVO HTML GENERADO
+# MOSTRAR ARCHIVO HTML DEL REPORTE
 # ===========================================================
 @app.route("/reporte/<filename>")
 def serve_generated(filename):
     safe = secure_filename(filename)
-    fullpath = os.path.join(REPORTS_FOLDER, safe)
+    path = os.path.join(REPORTS_FOLDER, safe)
 
-    if not os.path.exists(fullpath):
+    if not os.path.exists(path):
         abort(404)
 
     return send_from_directory(REPORTS_FOLDER, safe)
 
 
 # ===========================================================
-# PANEL ADMINISTRATIVO
+# PANEL ADMIN
 # ===========================================================
 @app.route("/admin/reports")
 @require_admin
