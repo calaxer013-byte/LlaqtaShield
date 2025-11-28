@@ -33,22 +33,33 @@ from werkzeug.utils import secure_filename
 
 
 # ===========================================================
-# CONFIGURACIÓN GLOBAL
+# CONFIGURACIÓN GLOBAL Y MANEJO DE RUTAS (AJUSTE CRÍTICO PARA RENDER)
 # ===========================================================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# Detectar si estamos en un entorno de servidor (como Render)
+IS_RENDER_ENV = os.environ.get("RENDER") is not None
+# La carpeta /tmp es la única con permisos de escritura garantizados en Render.
+TEMP_DIR = "/tmp" 
+PROJECT_ROOT = os.path.join(BASE_DIR, "..")
+
+# Base de Datos: Usa /tmp en Render, o la carpeta raíz en local
 DB_PATH = os.environ.get(
     "LLAQTA_DB_PATH",
-    os.path.join(BASE_DIR, "..", "llaqta.db")
+    os.path.join(TEMP_DIR, "llaqta.db") if IS_RENDER_ENV else os.path.join(PROJECT_ROOT, "llaqta.db")
 )
 
+# Carpeta de Uploads (Evidencias): Usa /tmp en Render para guardar archivos
 UPLOAD_FOLDER = os.environ.get(
     "LLAQTA_UPLOAD_FOLDER",
-    os.path.join(BASE_DIR, "..", "static", "evidencias")
+    # En Render, las evidencias se guardan en /tmp/evidencias
+    os.path.join(TEMP_DIR, "evidencias") if IS_RENDER_ENV else os.path.join(PROJECT_ROOT, "static", "evidencias")
 )
 
-REPORTS_FOLDER = os.path.join(os.path.dirname(DB_PATH), "reportes_generados")
+# Carpeta de Reportes Generados: Usa /tmp en Render
+REPORTS_FOLDER = os.path.join(TEMP_DIR, "reportes_generados") if IS_RENDER_ENV else os.path.join(PROJECT_ROOT, "reportes_generados")
 
+# Crear carpetas si no existen (Esto creará los directorios dentro de /tmp en Render)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REPORTS_FOLDER, exist_ok=True)
 
@@ -82,8 +93,8 @@ CATEGORIES = [
 # ===========================================================
 app = Flask(
     __name__,
-    template_folder=os.path.join(BASE_DIR, "..", "templates"),
-    static_folder=os.path.join(BASE_DIR, "..", "static")
+    template_folder=os.path.join(PROJECT_ROOT, "templates"),
+    static_folder=os.path.join(PROJECT_ROOT, "static")
 )
 
 # Clave para sesiones (necesaria para login por formulario)
@@ -107,6 +118,7 @@ _rate_store: Dict[str, deque] = {}
 def get_db_conn() -> sqlite3.Connection:
     """Retorna una conexión SQLite por request."""
     if "_database" not in g:
+        # Usa el DB_PATH corregido que apunta a /tmp en Render
         conn = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
         conn.row_factory = sqlite3.Row
         g._database = conn
@@ -123,6 +135,7 @@ def close_db_conn(_):
 def init_db():
     """Crea tabla de reportes si no existe."""
     try:
+        # Usa el DB_PATH corregido que apunta a /tmp en Render
         conn = sqlite3.connect(DB_PATH)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS reports (
@@ -139,7 +152,7 @@ def init_db():
             )
         """)
         conn.commit()
-        logger.info("📚 Base de datos inicializada correctamente.")
+        logger.info(f"📚 Base de datos inicializada correctamente en: {DB_PATH}")
     except Exception as e:
         logger.error("❌ Error inicializando la BD: %s", e)
     finally:
@@ -205,6 +218,7 @@ def generar_documento_reporte(data):
     """Genera archivo HTML profesional y seguro."""
     fecha = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"reporte_{fecha}.html"
+    # Ruta usa REPORTS_FOLDER (que ahora apunta a /tmp en Render)
     ruta = os.path.join(REPORTS_FOLDER, filename)
 
     html = f"""<!doctype html>
@@ -328,7 +342,7 @@ def api_alertas():
 
 
 # ===========================================================
-# API — REGISTRO DE REPORTES
+# API — REGISTRO DE REPORTES (AJUSTE DE RUTA DE IMAGEN)
 # ===========================================================
 @app.route("/report", methods=["POST"])
 def report():
@@ -364,13 +378,16 @@ def report():
             return jsonify({"error": "Archivo no permitido"}), 400
 
         filename = f"{int(time.time()*1000)}_{secure_filename(img.filename)}"
+        # full usa UPLOAD_FOLDER que apunta a /tmp en Render
         full = os.path.join(UPLOAD_FOLDER, filename)
 
         try:
             img.save(full)
+            # La ruta pública (que se guarda en BD) debe ser la estática /static/...
             imagen_rel = "/static/evidencias/" + filename
         except:
             logger.exception("Error guardando imagen")
+            # Este es el error de Permisos si ocurre en la subida
             return jsonify({"error": "Error guardando imagen"}), 500
 
     created_at = datetime.utcnow().isoformat()
@@ -393,6 +410,7 @@ def report():
         new_id = cur.lastrowid
     except Exception as e:
         logger.exception("DB error")
+        # El error que viste en el formulario ("DB error") proviene de aquí
         return jsonify({"error": "DB error"}), 500
 
     # Generar documento HTML
@@ -438,11 +456,12 @@ def api_reports():
 
 
 # ===========================================================
-# SERVIR REPORTES HTML
+# SERVIR REPORTES HTML (Ajustado para REPORTS_FOLDER en /tmp)
 # ===========================================================
 @app.route("/reporte/<filename>")
 def serve_generated(filename):
     safe = secure_filename(filename)
+    # path usa REPORTS_FOLDER que apunta a /tmp en Render
     path = os.path.join(REPORTS_FOLDER, safe)
 
     if not os.path.exists(path):
@@ -452,7 +471,7 @@ def serve_generated(filename):
 
 
 # ===========================================================
-# PANEL ADMIN (BASIC AUTH OJOS: mantiene compatibilidad)
+# PANEL ADMIN (BASIC AUTH)
 # ===========================================================
 @app.route("/admin/reports")
 @require_admin
@@ -464,7 +483,7 @@ def admin_reports():
 
 
 # ===========================================================
-# MAIN
+# MAIN (Ajustado para init_db con DB_PATH en /tmp)
 # ===========================================================
 def main():
     import argparse
@@ -481,6 +500,8 @@ def main():
         print("DB initialized at", DB_PATH)
         return
 
+    # IMPORTANTE: init_db se llama aquí, y usará la ruta corregida a /tmp
+    # Si Render no tiene el archivo db, lo creará con éxito en /tmp
     if not os.path.exists(DB_PATH):
         init_db()
 
