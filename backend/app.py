@@ -51,8 +51,18 @@ REPORTS_FOLDER = os.path.join(os.path.dirname(DB_PATH), "reportes_generados")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REPORTS_FOLDER, exist_ok=True)
 
-ADMIN_USER = os.environ.get("LLAQTA_ADMIN_USER", "admin")
-ADMIN_PASS = os.environ.get("LLAQTA_ADMIN_PASS", "changeme")
+# ===========================================================
+# SISTEMA DE USUARIOS — MEJORADO SEGÚN TU PEDIDO
+# ===========================================================
+USERS = {
+    "Cesar Lopez": "cesaralex017",
+    "Admin": "123456789",
+    "": ""  # Usuario y contraseña en blanco
+}
+
+def validar_credenciales(usuario, contraseña):
+    return usuario in USERS and USERS[usuario] == contraseña
+
 
 MAX_CONTENT_LENGTH = 6 * 1024 * 1024
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif"}
@@ -83,15 +93,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger("llaqta")
 
-# Memoria para rate limits
 _rate_store: Dict[str, deque] = {}
 
 
 # ===========================================================
-# UTILIDADES DEL SISTEMA
+# UTILIDADES
 # ===========================================================
 def get_db_conn() -> sqlite3.Connection:
-    """Retorna una conexión SQLite por request."""
     if "_database" not in g:
         conn = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
         conn.row_factory = sqlite3.Row
@@ -107,7 +115,6 @@ def close_db_conn(_):
 
 
 def init_db():
-    """Crea tabla de reportes si no existe."""
     try:
         conn = sqlite3.connect(DB_PATH)
         conn.execute("""
@@ -133,25 +140,21 @@ def init_db():
 
 
 def sanitize_text(s, max_len=2048):
-    """Remueve spam, exceso de espacios y limita longitud."""
     if not s:
         return ""
     return re.sub(r"\s+", " ", s).strip()[:max_len]
 
 
 def allowed_file(filename):
-    """Verifica extensión de imagen segura."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
 
 
 def ip_for_request():
-    """Obtiene IP real incluso con proxy."""
     forwarded = request.headers.get("X-Forwarded-For")
     return forwarded.split(",")[0] if forwarded else request.remote_addr or "0.0.0.0"
 
 
 def rate_limited():
-    """Anti-spam por IP."""
     ip = ip_for_request()
     now = time.time()
 
@@ -166,12 +169,14 @@ def rate_limited():
     return False
 
 
+# ===========================================================
+# DECORADOR DE LOGIN — MULTIUSUARIO
+# ===========================================================
 def require_admin(f):
-    """Protección básica para panel admin."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         auth = request.authorization
-        if not auth or auth.username != ADMIN_USER or auth.password != ADMIN_PASS:
+        if not auth or not validar_credenciales(auth.username, auth.password):
             return Response(
                 "Authentication required",
                 401,
@@ -182,10 +187,9 @@ def require_admin(f):
 
 
 # ===========================================================
-# GENERACIÓN DE ARCHIVO HTML DE REPORTE
+# GENERAR REPORTE HTML
 # ===========================================================
 def generar_documento_reporte(data):
-    """Genera archivo HTML profesional y seguro."""
     fecha = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"reporte_{fecha}.html"
     ruta = os.path.join(REPORTS_FOLDER, filename)
@@ -235,7 +239,7 @@ def mapa():
 
 
 # ===========================================================
-# API DE ALERTAS (SIMULADAS)
+# API ALERTAS SIMULADAS
 # ===========================================================
 @app.route("/api/alertas")
 def api_alertas():
@@ -278,7 +282,6 @@ def report():
     form = request.form
     files = request.files
 
-    # Datos saneados
     categoria = sanitize_text(form.get("categoria", "OTRO"))
     descripcion = sanitize_text(form.get("descripcion"))
     direccion = sanitize_text(form.get("direccion"))
@@ -288,14 +291,12 @@ def report():
     if not descripcion:
         return jsonify({"error": "Descripción obligatoria"}), 400
 
-    # Coordenadas seguras
     try:
         lat = float(form.get("lat")) if form.get("lat") else None
         lng = float(form.get("lng")) if form.get("lng") else None
     except ValueError:
         lat = lng = None
 
-    # Manejo de imagen
     imagen_rel = None
     img = files.get("imagen")
 
@@ -315,7 +316,6 @@ def report():
 
     created_at = datetime.utcnow().isoformat()
 
-    # Guardado BD
     try:
         conn = get_db_conn()
         cur = conn.cursor()
@@ -331,11 +331,10 @@ def report():
         conn.commit()
 
         new_id = cur.lastrowid
-    except Exception as e:
+    except:
         logger.exception("DB error")
         return jsonify({"error": "DB error"}), 500
 
-    # Generar documento HTML
     doc_path = generar_documento_reporte({
         "Fecha": created_at,
         "Categoría": categoria,
@@ -378,7 +377,7 @@ def api_reports():
 
 
 # ===========================================================
-# MOSTRAR ARCHIVO HTML DEL REPORTE
+# SERVIR REPORTES HTML
 # ===========================================================
 @app.route("/reporte/<filename>")
 def serve_generated(filename):
