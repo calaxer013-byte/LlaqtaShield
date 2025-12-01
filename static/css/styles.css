@@ -1,0 +1,233 @@
+/* ============================================================
+   ESTILOS ULTRA PRO — LlaqtaShield UI v2.0
+   ============================================================ */
+
+:root {
+  /* PALETA MODERNA */
+  --accent:#0f6f55;             /* Verde institucional elegante */
+  --accent-light:#1c8f6b;
+  --accent-dark:#064635;
+
+  --bg:#f4fbf8;                 /* Fondo limpio */
+  --card:#ffffff;               /* Tarjeta */
+  --card-blur:rgba(255,255,255,0.82);
+
+  --text:#072d25;               /* Texto principal */
+  --muted:#6b7b73;              /* Texto secundario */
+
+  --radius:14px;
+  --shadow-xs:0 1px 4px rgba(0,0,0,0.06);
+  --shadow-sm:0 3px 10px rgba(0,0,0,0.08);
+  --shadow-md:0 6px 20px rgba(0,0,0,0.12);
+  --shadow-lg:0 10px 40px rgba(0,0,0,0.18);
+
+  --transition:0.28s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   BODY & TIPOGRAFÍA
+   ============================================================ */
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, Arial;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2,h3,h4,h5 {
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ============================================================
+   HEADER GENERAL
+   ============================================================ */
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--card-blur);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius);
+  animation: fadeIn 0.6s ease;
+}
+
+.small-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-blur);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e5efe9;
+  box-shadow: var(--shadow-xs);
+  animation: fadeInDown 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+  width: 64px;
+}
+
+/* ============================================================
+   LINKS
+   ============================================================ */
+.link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.link:hover {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
+/* ============================================================
+   CONTENEDOR GENERAL
+   ============================================================ */
+.container {
+  max-width: 1150px;
+  margin: 28px auto;
+  padding: 0 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+/* ============================================================
+   TARJETAS
+   ============================================================ */
+.card {
+  background: var(--card);
+  padding: 22px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.btn {
+  display: inline-block;
+  padding: 12px 18px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.btn:hover {
+  background: var(--accent-light);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+.form label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.input,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 6px;
+  border-radius: var(--radius);
+  background: #fdfdfb;
+  border: 1px solid #dfeee7;
+  transition: var(--transition);
+  font-size: 15px;
+}
+
+.input:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15,111,85,0.18);
+  outline: none;
+}
+
+/* ============================================================
+   TABLAS
+   ============================================================ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.table th {
+  background: var(--accent);
+  color: #fff;
+  padding: 12px;
+  font-weight: 700;
+  text-align: left;
+  font-size: 15px;
+}
+
+.table td {
+  padding: 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e9f4ee;
+  font-size: 14px;
+}
+
+.table tr:hover td {
+  background: #f2faf6;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 650px) {
+  .site-header,
+  .small-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 10px;
+  }
+}
