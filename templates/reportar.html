@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reportar — LlaqtaShield</title>
+  <meta name="description" content="Formulario de reportes y alertas — LlaqtaShield. Reporta incidencias, emergencias y riesgos desde tu navegador." />
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ESTILOS (un solo archivo: moderno, profesional y responsive) -->
+  <style>
+    :root{
+      --bg-900:#06110d;
+      --bg-800:#0c1411;
+      --glass-01: rgba(255,255,255,0.06);
+      --glass-02: rgba(255,255,255,0.10);
+      --glass-border: rgba(255,255,255,0.28);
+      --accent:#20c06f;
+      --accent-dark:#0c5f3a;
+      --muted: rgba(200,255,220,0.75);
+
+      --card-radius:20px;
+      --soft-shadow: 0 6px 30px rgba(0,0,0,0.55);
+      --glass-shadow: 0 10px 50px rgba(0,0,0,0.6);
+    }
+
+    /* Reset mínimo */
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background:var(--bg-900);
+      color:#e9fff2;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      overflow-y:auto;
+    }
+
+    /* Fondo dinámico */
+    body::before{
+      content:"";
+      position:fixed; inset:0; z-index:-3;
+      background:
+        radial-gradient(circle at 18% 30%, rgba(32,192,111,0.16), transparent 45%),
+        radial-gradient(circle at 82% 70%, rgba(10,110,60,0.12), transparent 45%),
+        linear-gradient(160deg,#07110c,#0b1f17 40%, #051311 100%);
+      background-size: cover;
+      opacity:0.95;
+      transform: translateZ(0);
+      animation: bgShift 30s linear infinite;
+    }
+    @keyframes bgShift{
+      0%{background-position:0 0, 0 0, 0 0;}
+      100%{background-position:0 0, 0 420px, 0 0;}
+    }
+
+    /* header / nav */
+    header.site-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      padding:18px 28px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter: blur(8px);
+    }
+    .brand{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      text-decoration:none;
+      color:var(--muted);
+    }
+    .brand .logo{
+      width:44px;height:44px;border-radius:10px;
+      background:linear-gradient(135deg,var(--accent-dark),var(--accent));
+      display:grid;place-items:center;font-weight:800;color:#fff;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+    .brand h1{font-size:1.05rem;margin:0;color:#eafff2}
+    .nav-actions{display:flex;gap:10px;align-items:center}
+    .nav-actions a{color:var(--muted);text-decoration:none;font-weight:600}
+    .nav-actions a.btn-ghost{
+      padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);
+      background:transparent;transition:0.18s;
+    }
+    .nav-actions a.btn-ghost:hover{transform:translateY(-3px);box-shadow:var(--soft-shadow);}
+
+    /* Layout principal */
+    .wrap{
+      max-width:1200px;
+      margin:36px auto;
+      padding:0 22px 80px;
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:34px;
+      align-items:start;
+    }
+
+    /* Contenido izquierdo: info largo + hero */
+    .main-left{
+      display:flex;flex-direction:column;gap:28px;
+    }
+
+    .hero{
+      border-radius: var(--card-radius);
+      overflow:hidden;
+      position:relative;
+      min-height:220px;
+      display:flex;
+      align-items:center;
+      padding:34px;
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.55)),
+        url('/static/img/colegio_huanuco.jpg');
+      background-size:cover;background-position:center;
+      border:3px solid rgba(255,255,255,0.06);
+      box-shadow:var(--glass-shadow);
+    }
+    .hero .hero-content{max-width:860px}
+    .hero h2{margin:0;font-size:2.05rem;letter-spacing:-0.2px;color:#eaffef;text-shadow:0 6px 30px rgba(0,0,0,0.6)}
+    .hero p{margin-top:10px;color:#c8f5da;opacity:0.95;font-size:1.05rem}
+
+    /* Info blocks largos */
+    .info-block{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:22px;border-radius:16px;border:2px solid rgba(255,255,255,0.04);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+    }
+    .info-block h3{margin:0 0 10px;font-size:1.25rem;color:#e9fff2}
+    .info-block p{margin:0;color:#ccefdc;line-height:1.6}
+
+    /* Cards area (ejemplos + protocolos) */
+    .cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+
+    .example-card{
+      background:var(--glass-02);
+      padding:18px;border-radius:14px;border:2px solid var(--glass-border);
+      min-height:120px;display:flex;flex-direction:column;gap:8px;
+    }
+    .example-card h4{margin:0;font-size:1.05rem}
+    .example-card p{margin:0;font-size:0.95rem;color:#dfffe5;opacity:0.95}
+
+    /* FAQ estilo */
+    .faq{display:grid;gap:8px}
+    .faq-item{background:rgba(255,255,255,0.02);padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .faq-item summary{cursor:pointer;font-weight:700}
+    .faq-item p{margin:8px 0 0;color:#dfffe5;font-size:0.95rem}
+
+    /* RIGHT COLUMN: FORM */
+    .panel{
+      position:relative;
+      top:0;
+      border-radius:22px;
+      padding:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 3px solid rgba(255,255,255,0.06);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .panel h3{margin:0 0 8px;font-size:1.25rem}
+    .panel p.sub{margin:0 0 14px;color:#c9f4d9;font-size:0.95rem}
+
+    form#reportForm{display:flex;flex-direction:column;gap:12px}
+    label.field{
+      display:flex;flex-direction:column;font-weight:700;font-size:0.98rem;
+    }
+    input[type="text"], input[type="tel"], textarea, select{
+      margin-top:8px;padding:12px 12px;border-radius:12px;border:2px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.32);color:#eafff2;font-size:1rem;transition:0.18s;backdrop-filter:blur(6px)
+    }
+    textarea{min-height:110px;resize:vertical}
+    input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(32,192,111,0.12)}
+
+    /* file input / dropzone */
+    .dropzone{
+      margin-top:8px;padding:10px;border-radius:12px;border:2px dashed rgba(255,255,255,0.08);
+      display:flex;gap:12px;align-items:center;justify-content:flex-start;background:rgba(255,255,255,0.02)
+    }
+    .dz-preview{width:64px;height:64px;border-radius:8px;background:rgba(255,255,255,0.04);display:grid;place-items:center;font-weight:700;color:#fff}
+    .dz-meta{font-size:0.95rem;color:#dfffe6}
+    .dz-hint{font-size:0.9rem;color:#bff1cf}
+
+    /* small controls */
+    .row{display:flex;gap:8px;align-items:center}
+    .checkbox-inline{display:flex;align-items:center;gap:8px}
+
+    /* hidden geo fields */
+    input.hidden{display:none}
+
+    /* progress bar */
+    .progress-wrap{height:10px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden;margin-top:6px}
+    .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-dark),var(--accent));transition:width 250ms ease}
+
+    /* submit area */
+    .actions{display:flex;gap:10px;align-items:center;margin-top:8px}
+    button.btn-primary{
+      padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent-dark),var(--accent));
+      color:#04110a;font-weight:800;cursor:pointer;box-shadow:0 8px 28px rgba(32,192,111,0.16)
+    }
+    button.btn-primary:hover{transform:translateY(-3px);filter:brightness(1.06)}
+    a.btn-secondary{
+      padding:10px 14px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);text-decoration:none
+    }
+
+    /* result area */
+    #result{margin-top:12px;padding:12px;border-radius:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.03);color:#e7ffea}
+
+    /* helper small text */
+    .muted{font-size:0.92rem;color:#bfeccd}
+
+    /* responsive adjustments */
+    @media (max-width:1010px){
+      .wrap{grid-template-columns:1fr; padding:0 18px 60px}
+      .panel{order:2}
+    }
+    @media (max-width:560px){
+      .hero{padding:22px;min-height:160px}
+      .hero h2{font-size:1.6rem}
+      .panel{padding:16px;border-radius:16px}
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header" role="banner">
+    <a href="/" class="brand" aria-label="LlaqtaShield — Inicio">
+      <div class="logo" aria-hidden="true">LQ</div>
+      <div>
+        <div style="font-size:0.95rem;font-weight:800">LlaqtaShield</div>
+        <div style="font-size:0.78rem;color:#c9f6d9">Plataforma Inteligente de Alertas</div>
+      </div>
+    </a>
+    <nav class="nav-actions" aria-label="Acciones">
+      <a href="/mapa" class="btn-ghost">Ver mapa</a>
+      <a href="/admin/reports" class="btn-ghost">Panel administrativo</a>
+    </nav>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="wrap" role="main">
+    <!-- LEFT: info largo -->
+    <div class="main-left">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-content">
+          <h2 id="hero-title">Reporta incidencias desde tu comunidad — rápido, seguro y anónimo</h2>
+          <p>Comparte información, evidencia y ubicación para que las autoridades y la comunidad reaccionen con mayor rapidez. Tu participación ayuda a proteger a estudiantes, familias y vecinos.</p>
+        </div>
+      </section>
+
+      <section class="info-block" aria-labelledby="como-title">
+        <h3 id="como-title">¿Cómo funciona?</h3>
+        <p>Al enviar un reporte se guarda en la base de datos y se genera un documento oficial (HTML/PDF) para ser consultado por las autoridades. Puedes enviar tu alerta de forma anónima si lo deseas. Si adjuntas una foto, el sistema la almacenará como evidencia.</p>
+
+        <div style="margin-top:14px" class="cards-row" aria-hidden="false">
+          <div class="example-card">
+            <h4>Ejemplo: Robo</h4>
+            <p>Indica ubicación exacta y una breve descripción. Adjunta foto si tienes.</p>
+          </div>
+          <div class="example-card">
+            <h4>Ejemplo: Bullying</h4>
+            <p>Describe la situación, personas involucradas y lugar específico.</p>
+          </div>
+          <div class="example-card">
+            <h4>Ejemplo: Salud</h4>
+            <p>Reporta emergencias médicas; incluye si la víctima requiere atención inmediata.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-block" aria-labelledby="protocol-title">
+        <h3 id="protocol-title">Protocolos y recomendaciones</h3>
+        <p>Si la emergencia es inmediata, prioriza llamar al número de emergencia. Usa este formulario para documentar y generar evidencia que facilite la respuesta. Evita poner datos personales innecesarios si prefieres mantener anonimato.</p>
+
+        <div style="margin-top:12px" class="faq" role="list">
+          <details class="faq-item" role="listitem">
+            <summary>¿Puedo reportar de forma anónima?</summary>
+            <p>Sí — activa la casilla "Enviar anónimo" en el formulario. Aun así, la ubicación o la foto pueden aportar evidencia.</p>
+          </details>
+
+          <details class="faq-item" role="listitem">
+            <summary>¿Qué tipo de imágenes son válidas?</summary>
+            <p>Se aceptan PNG, JPG, JPEG y GIF. Evita imágenes que identifiquen a menores sin autorización.</p>
+          </details>
+
+          <details class="faq-item" role="listitem">
+            <summary>¿Dónde se guardan los reportes?</summary>
+            <p>Los reportes se guardan en la base de datos del sistema y se genera un archivo en la carpeta de reportes generados para descarga.</p>
+          </details>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT: panel / form -->
+    <aside class="panel" aria-labelledby="panel-title">
+      <h3 id="panel-title">Enviar nuevo reporte</h3>
+      <p class="sub">Rellena los datos. Puedes usar la geolocalización para completar la latitud/longitud.</p>
+
+      <!-- Formulario (compatible con tu backend /report) -->
+      <form id="reportForm" method="post" action="/report" enctype="multipart/form-data" novalidate>
+        <!-- Categoria -->
+        <label class="field" for="categoria">Categoría
+          <select id="categoria" name="categoria" required aria-required="true">
+            <!-- Jinja loop para Flask -->
+            {% for c in categories %}
+              <option value="{{ c }}">{{ c.replace('_',' ') }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <!-- Descripción -->
+        <label class="field" for="descripcion">Descripción
+          <textarea id="descripcion" name="descripcion" placeholder="Describe brevemente lo sucedido" required aria-required="true"></textarea>
+        </label>
+
+        <!-- Dirección -->
+        <label class="field" for="direccion">Dirección (opcional)
+          <input id="direccion" name="direccion" type="text" placeholder="Ej. Av. Principal, parroquia X">
+        </label>
+
+        <!-- Teléfono -->
+        <label class="field" for="telefono">Teléfono (opcional)
+          <input id="telefono" name="telefono" type="tel" placeholder="+51 9XXXXXXXX">
+        </label>
+
+        <!-- Geo: botones obtener -->
+        <div class="row" style="margin-top:6px; justify-content:space-between;">
+          <div style="flex:1;">
+            <label class="field" for="lat">Ubicación (lat / lng)</label>
+            <div class="row" style="gap:8px;">
+              <input id="lat" name="lat" type="text" placeholder="Latitud" class="hidden" />
+              <input id="lng" name="lng" type="text" placeholder="Longitud" class="hidden" />
+              <input id="lat-visible" aria-hidden="true" type="text" disabled style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04); color:#bff2d4" placeholder="Lat, Long (pulsa 'Obtener ubicación')">
+              <button type="button" id="btnGeo" class="btn-secondary" title="Obtener ubicación actual">Obtener ubicación</button>
+            </div>
+            <div id="geoHint" class="muted" style="margin-top:6px">Si no permites geolocalización, puedes escribir la dirección manualmente.</div>
+          </div>
+        </div>
+
+        <!-- anonimo -->
+        <div class="row" style="margin-top:10px;align-items:center;">
+          <label class="checkbox-inline" style="font-weight:600">
+            <input id="anonimo" name="anonimo" type="checkbox" value="on" aria-checked="false" /> Enviar anónimo
+          </label>
+        </div>
+
+        <!-- Imagen: dropzone -->
+        <label class="field" for="imagen">Evidencia (foto) — opcional</label>
+        <div id="dropzone" class="dropzone" aria-label="Área para subir imagen">
+          <div class="dz-preview" id="previewBox">IMG</div>
+          <div class="dz-meta">
+            <div class="dz-hint">Arrastra la imagen o haz clic para seleccionar<br><small style="color:#bfeccd">PNG / JPG / JPEG / GIF (máx 6MB)</small></div>
+            <input id="imagen" name="imagen" type="file" accept="image/*" style="display:none" />
+          </div>
+        </div>
+
+        <!-- progress -->
+        <div class="progress-wrap" aria-hidden="false" style="margin-top:6px">
+          <div id="progressBar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+        </div>
+
+        <!-- acciones -->
+        <div class="actions" role="group" aria-label="Acciones del formulario">
+          <button type="submit" class="btn-primary">Enviar reporte</button>
+          <a href="/" class="btn-secondary" role="button">Cancelar</a>
+        </div>
+
+        <div id="result" aria-live="polite" style="display:none"></div>
+      </form>
+    </aside>
+  </div>
+
+  <!-- SCRIPTS: validación, geo, preview, envío asíncrono (compatible con backend POST /report) -->
+  <script>
+    (function(){
+      // Elementos
+      const form = document.getElementById('reportForm');
+      const btnGeo = document.getElementById('btnGeo');
+      const latInput = document.getElementById('lat');
+      const lngInput = document.getElementById('lng');
+      const latVisible = document.getElementById('lat-visible');
+      const result = document.getElementById('result');
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('imagen');
+      const previewBox = document.getElementById('previewBox');
+      const progressBar = document.getElementById('progressBar');
+
+      // Inicial
+      let currentFile = null;
+
+      // Drag & Drop handlers
+      ;(function initDropzone(){
+        dropzone.addEventListener('click', ()=> fileInput.click());
+        dropzone.addEventListener('dragover', e=> { e.preventDefault(); dropzone.style.borderColor = 'rgba(32,192,111,0.7)'; });
+        dropzone.addEventListener('dragleave', e=> { dropzone.style.borderColor = 'rgba(255,255,255,0.08)'; });
+        dropzone.addEventListener('drop', e=> {
+          e.preventDefault();
+          dropzone.style.borderColor = 'rgba(255,255,255,0.08)';
+          if(e.dataTransfer.files && e.dataTransfer.files.length){
+            fileInput.files = e.dataTransfer.files;
+            handleFile(fileInput.files[0]);
+          }
+        });
+        fileInput.addEventListener('change', ()=> {
+          if(fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+        });
+      })();
+
+      function handleFile(file){
+        // Validate size and type
+        const allowed = ['image/png','image/jpeg','image/jpg','image/gif'];
+        if(!allowed.includes(file.type)){
+          alert('Tipo de archivo no permitido. Usa PNG/JPG/GIF.');
+          fileInput.value = '';
+          return;
+        }
+        if(file.size > 6 * 1024 * 1024){
+          alert('El archivo excede 6MB.');
+          fileInput.value = '';
+          return;
+        }
+        currentFile = file;
+
+        // preview
+        const reader = new FileReader();
+        reader.onload = function(ev){
+          previewBox.style.backgroundImage = `url('${ev.target.result}')`;
+          previewBox.style.backgroundSize = 'cover';
+          previewBox.textContent = '';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // GEO: obtener lat/lng
+      btnGeo.addEventListener('click', function(){
+        if(!navigator.geolocation){
+          alert('Geolocalización no soportada por este navegador.');
+          return;
+        }
+        btnGeo.disabled = true;
+        btnGeo.textContent = 'Obteniendo…';
+        navigator.geolocation.getCurrentPosition(function(pos){
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          latInput.value = lat;
+          lngInput.value = lng;
+          latVisible.value = `${lat}, ${lng}`;
+          btnGeo.disabled = false;
+          btnGeo.textContent = 'Obtener ubicación';
+        }, function(err){
+          btnGeo.disabled = false;
+          btnGeo.textContent = 'Obtener ubicación';
+          alert('No se pudo obtener la ubicación. Comprueba permisos del navegador.');
+        }, {enableHighAccuracy:true, timeout:10000});
+      });
+
+      // Simple client-side validation
+      function validateForm(fd){
+        const description = fd.get('descripcion') || '';
+        if(!description.trim()){
+          return {ok:false, msg:'La descripción es obligatoria.'};
+        }
+        // optional: enforce category exists
+        return {ok:true};
+      }
+
+      // Send form to backend (AJAX) with progress and handle response
+      form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        result.style.display = 'block';
+        result.style.background = 'rgba(0,0,0,0.28)';
+        result.textContent = '⏳ Preparando reporte...';
+
+        const fd = new FormData(form);
+
+        // if preview file is set in currentFile, ensure it's in fd (file input already does)
+        // validate
+        const v = validateForm(fd);
+        if(!v.ok){
+          result.textContent = '⚠ ' + v.msg;
+          return;
+        }
+
+        // Use Fetch with progress via XHR for upload progress
+        try{
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', form.action, true);
+
+          xhr.upload.onprogress = function(evt){
+            if(evt.lengthComputable){
+              const pct = Math.round((evt.loaded / evt.total) * 100);
+              progressBar.style.width = pct + '%';
+              progressBar.setAttribute('aria-valuenow', pct);
+            }
+          };
+
+          xhr.onload = function(){
+            try{
+              const json = JSON.parse(xhr.responseText);
+              if(xhr.status >= 200 && xhr.status < 300){
+                // success
+                result.innerHTML = `<strong style="color:#cfeedd">✅ Reporte enviado correctamente</strong>`;
+                if(json.document){
+                  const link = document.createElement('a');
+                  link.href = json.document;
+                  link.textContent = 'Abrir documento generado';
+                  link.style.color = '#20C06F';
+                  link.style.display = 'block';
+                  link.style.fontWeight = '700';
+                  link.style.marginTop='8px';
+                  link.target = '_blank';
+                  result.appendChild(link);
+                  window.open(json.document, '_blank');
+                }
+                form.reset();
+                previewBox.style.backgroundImage = '';
+                previewBox.textContent = 'IMG';
+                progressBar.style.width = '0%';
+                latVisible.value = '';
+              } else {
+                result.textContent = '⚠ ' + (json.error || 'Error al enviar el reporte');
+              }
+            } catch(err){
+              result.textContent = '⚠ Respuesta inesperada del servidor';
+            }
+          };
+
+          xhr.onerror = function(){
+            result.textContent = '⚠ Error de red al enviar el reporte';
+          };
+
+          xhr.send(fd);
+          result.textContent = '⏳ Enviando...';
+        } catch(err){
+          result.textContent = '⚠ Error inesperado: ' + (err.message || err);
+        }
+      });
+
+      // Accessibility: toggle aria-checked for anon checkbox
+      const anon = document.getElementById('anonimo');
+      anon.addEventListener('change', ()=> anon.setAttribute('aria-checked', anon.checked ? 'true' : 'false'));
+    })();
+  </script>
+</body>
+</html>
