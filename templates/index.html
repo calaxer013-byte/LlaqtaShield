@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>LlaqtaShield — Plataforma Inteligente de Alertas Comunitarias</title>
+
+  <meta name="description" content="LlaqtaShield — Sistema profesional de reportes, alertas y monitoreo ciudadano en Huánuco. Tecnología STEAM con enfoque social.">
+
+  <!-- Ícono y Fuente -->
+  <link rel="icon" type="image/svg+xml" href="/static/img/llaqta_ultra.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos Globales -->
+  <style>
+    :root{
+      --verde1:#062e1f; --verde2:#21d87f; --verde3:#0fa25c;
+      --bg-dark:#08110d;
+      --glass:rgba(255,255,255,0.08);
+      --glass-strong:rgba(255,255,255,0.12);
+      --gradient:linear-gradient(135deg,var(--verde1),var(--verde2));
+      --shadow-sm:0 2px 8px rgba(0,0,0,0.35);
+      --shadow-md:0 6px 25px rgba(0,0,0,0.45);
+      --shadow-lg:0 12px 55px rgba(0,0,0,0.70);
+      --muted:#cfeee0;
+      --glass-border:rgba(255,255,255,0.14);
+      --max-width:1200px;
+      --card-radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg-dark);
+      font-family:"Inter",sans-serif;
+      color:var(--muted);
+      line-height:1.6;
+      overflow-x:hidden;
+    }
+
+    a{text-decoration:none;color:inherit;transition:.25s}
+
+    /* HEADER */
+    header.site-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 24px;
+      background:rgba(0,0,0,0.35);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(255,255,255,0.07);
+      position:sticky;top:0;z-index:200;
+      animation:fadeDown .7s ease;
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:12px;
+      font-weight:800;color:#e5fff0;
+    }
+
+    .logo{
+      width:46px;height:46px;border-radius:12px;
+      background:var(--gradient);
+      display:grid;place-items:center;
+      font-weight:800;color:white;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .nav-actions{display:flex;gap:10px}
+
+    .btn{
+      padding:10px 16px;
+      background:var(--gradient);
+      border-radius:12px;
+      font-weight:700;color:white;
+      box-shadow:var(--shadow-sm);
+      text-align:center;
+    }
+
+    .ghost{
+      padding:10px 16px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.15);
+      background:rgba(255,255,255,0.03);
+      color:#d7fbe5;
+    }
+    .ghost:hover{background:rgba(255,255,255,0.15)}
+
+    main{
+      max-width:var(--max-width);
+      margin:32px auto;
+      padding:0 18px;
+      animation:fadeIn .9s ease;
+    }
+
+    /* HERO */
+    .hero{
+      padding:90px 30px;
+      border-radius:22px;
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.75)),
+        url('/static/img/colegio_huanuco.jpg');
+      background-size:cover;
+      background-position:center;
+      box-shadow:var(--shadow-lg);
+      color:#eaffef;
+      animation:fadeUp .9s ease;
+      border:1px solid rgba(255,255,255,0.05);
+    }
+
+    .hero h1{
+      font-size:clamp(2.0rem,4vw,3.4rem);
+      margin:0;
+      letter-spacing:-0.5px;
+      font-weight:800;
+    }
+
+    .hero p{
+      max-width:820px;
+      margin-top:14px;
+      color:#d7ffe8;
+      font-size:1.1rem;
+    }
+
+    /* CARDS */
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:26px;
+      margin:45px 0;
+    }
+
+    .card{
+      padding:26px;
+      border-radius:var(--card-radius);
+      background:var(--glass);
+      border:1px solid var(--glass-border);
+      box-shadow:var(--shadow-md);
+      transition:.32s;
+    }
+
+    .card:hover{
+      transform:translateY(-8px) scale(1.02);
+      border-color:#fff;
+      box-shadow:var(--shadow-lg);
+    }
+
+    /* SECCIONES */
+    .section{margin:65px 0}
+    .section h2{
+      font-size:1.9rem;
+      color:#e9fff2;
+      margin-bottom:20px;
+      font-weight:700;
+    }
+
+    .inner{
+      display:grid;
+      grid-template-columns:1fr 380px;
+      gap:28px;
+    }
+
+    .boxed{
+      padding:24px;
+      border-radius:var(--card-radius);
+      background:var(--glass-strong);
+      border:1px solid var(--glass-border);
+      box-shadow:var(--shadow-sm);
+    }
+
+    .feature-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      margin-top:14px;
+    }
+
+    .feature-card{
+      padding:18px;
+      border-radius:12px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.09);
+    }
+
+    /* STATS */
+    .stats-row{
+      display:flex;
+      gap:18px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .stat{
+      padding:18px;
+      background:rgba(255,255,255,0.06);
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.08);
+      min-width:150px;
+      text-align:center;
+    }
+
+    .stat h3{
+      margin:0;
+      font-size:1.4rem;
+      color:#eaffef;
+    }
+
+    /* CTA */
+    .cta{text-align:center;margin:60px 0}
+    .cta .btn{padding:16px 28px;font-size:1.15rem}
+
+    /* FOOTER */
+    footer{
+      text-align:center;
+      padding:32px 0;
+      margin-top:50px;
+      color:#bfe9d1;
+      border-top:1px solid rgba(255,255,255,0.05);
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:980px){
+      .inner{grid-template-columns:1fr}
+      .hero{padding:70px 22px}
+      header.site-header{flex-wrap:wrap;gap:12px}
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <a class="brand" href="/">
+      <div class="logo">LQ</div>
+      <div>
+        <div style="font-size:1.25rem;font-weight:800;">LlaqtaShield</div>
+        <div style="font-size:12px;color:#bfe9d1">Plataforma Inteligente de Alertas</div>
+      </div>
+    </a>
+
+    <nav class="nav-actions">
+      <a class="ghost" href="/mapa">Ver mapa</a>
+      <a class="ghost" href="/reportar">Reportar</a>
+      <a class="btn" href="/admin/reports">Panel admin</a>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1>La Plataforma de Alertas Más Avanzada de Huánuco</h1>
+      <p>
+        LlaqtaShield integra IA, geolocalización y analítica en tiempo real para mejorar la seguridad ciudadana.
+        Reporta desde tu teléfono en segundos y genera evidencia oficial para autoridades.
+      </p>
+    </section>
+
+    <!-- CARDS -->
+    <section class="cards">
+      <article class="card">
+        <h3>🛡 Reportar</h3>
+        <p>Envía alertas con descripción, ubicación y foto — sin instalar apps.</p>
+        <a class="btn" href="/reportar">Enviar alerta</a>
+      </article>
+
+      <article class="card">
+        <h3>📍 Mapa en Vivo</h3>
+        <p>Visualiza reportes georreferenciados al instante.</p>
+        <a class="btn" href="/mapa">Ver mapa</a>
+      </article>
+
+      <article class="card">
+        <h3>🔐 Panel Administrativo</h3>
+        <p>Filtra, descarga y gestiona reportes con control de acceso.</p>
+        <a class="btn" href="/admin/reports">Entrar</a>
+      </article>
+    </section>
+
+    <!-- STEAM / TECNOLOGÍA / STATS / ETC -->
+    <!-- (Todo tu contenido permanece igual, solo con estilos mejorados) -->
+
+    <section class="section">
+      <h2>🧠 Fundamento Tecnológico</h2>
+      <div class="inner">
+        <div class="boxed">
+          <p>Plataforma optimizada con API REST, geolocalización y backend de alto rendimiento.</p>
+
+          <div class="feature-grid">
+            <div class="feature-card"><h4>Arquitectura moderna</h4><p>Módulos escalables.</p></div>
+            <div class="feature-card"><h4>Sistema GIS</h4><p>Mapas, clustering y calor.</p></div>
+            <div class="feature-card"><h4>IA / ML</h4><p>Clasificación automática.</p></div>
+          </div>
+        </div>
+
+        <aside class="boxed">
+          <h3>🔒 Seguridad</h3>
+          <ul style="margin-left:20px">
+            <li>Cifrado TLS</li>
+            <li>Roles y autenticación</li>
+            <li>Auditoría de acciones</li>
+            <li>Borrado seguro</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>🎓 Enfoque Educativo STEAM</h2>
+      <div class="inner" style="grid-template-columns:1fr">
+        <div class="boxed">
+          <p>Proyecto pedagógico para desarrollar habilidades tecnológicas.</p>
+
+          <div class="feature-grid">
+            <div class="feature-card"><h4>Programación</h4><p>Backend y Frontend.</p></div>
+            <div class="feature-card"><h4>GIS</h4><p>Coordenadas y mapas.</p></div>
+            <div class="feature-card"><h4>Data Science</h4><p>Visualización y análisis.</p></div>
+            <div class="feature-card"><h4>UX/UI</h4><p>Interfaces modernas.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>📊 Analítica</h2>
+      <div class="inner">
+        <div class="boxed">
+          <p>Indicadores clave para prevención:</p>
+
+          <div class="stats-row">
+            <div class="stat"><h3>Tipos</h3><p>Categorías</p></div>
+            <div class="stat"><h3>Horarios</h3><p>Frecuencias</p></div>
+            <div class="stat"><h3>Zonas</h3><p>Puntos críticos</p></div>
+            <div class="stat"><h3>Tendencias</h3><p>Mes a mes</p></div>
+          </div>
+        </div>
+
+        <aside class="boxed">
+          <h3>🛠 Flujo del Sistema</h3>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div>1. Usuario reporta</div>
+            <div>2. Geolocalización</div>
+            <div>3. Registro en BD</div>
+            <div>4. Documento oficial</div>
+            <div>5. Aparece en el mapa</div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Impacto del Proyecto</h2>
+      <div class="stats-row">
+        <div class="stat"><h3>+120</h3><p>Capacitados</p></div>
+        <div class="stat"><h3>24/7</h3><p>Monitoreo</p></div>
+        <div class="stat"><h3>100%</h3><p>Compatible móviles</p></div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      © 2025 — Proyecto LlaqtaShield — Huánuco — Innovación Social y STEAM
+    </footer>
+
+  </main>
+
+</body>
+</html>
